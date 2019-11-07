@@ -7,7 +7,6 @@ output: github_document
 
 ```{r setup, include = FALSE}
 library(tidyverse)
-library(rvest)
 
 knitr::opts_chunk$set(
 	echo = TRUE,
@@ -34,3 +33,72 @@ set.seed(1)
 ## This is gonna be so great
 
 Seriously linear models are the best part of statistics
+
+```{r}
+library(p8105.datasets)
+```
+
+Initial data cleaning:
+
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb %>% 
+  mutate(stars = review_scores_location / 2) %>% 
+  rename(
+    boro = neighbourhood_group,
+    neighborhood = neighbourhood) %>% 
+  filter(boro != "Staten Island") %>% 
+  select(price, stars, boro, neighborhood, room_type)
+```
+
+Fit a first linear model!
+
+```{r}
+fit = lm(price ~ stars + boro, data = nyc_airbnb)
+```
+
+```{r, eval = FALSE}
+fit
+
+summary(fit)
+coef(fit)
+summary(fit)$coef
+```
+
+tidy the results instead!
+
+```{r}
+fit %>% 
+  broom::tidy() %>% 
+  mutate(term = str_replace(term, "boro", "Boro: ")) %>% 
+  knitr::kable(digits = 3)
+
+fit %>% 
+  broom::glance()
+```
+
+
+## Take a look at factors ...
+
+```{r}
+nyc_airbnb = 
+  nyc_airbnb %>% 
+  mutate(
+    boro = fct_infreq(boro),
+    room_type = fct_infreq(room_type)
+  )
+```
+
+
+
+refit the last model 
+
+```{r}
+fit = lm(price ~ stars + boro, data = nyc_airbnb)
+
+fit %>% 
+  broom::tidy()
+```
+
