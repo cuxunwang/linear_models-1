@@ -1,40 +1,11 @@
----
-title: "The bootstrap!"
-author: "Jeff Goldsmith"
-date: "11/8/2019"
-output: github_document
----
-
-```{r setup, include = FALSE}
-library(tidyverse)
-library(p8105.datasets)
-
-knitr::opts_chunk$set(
-	echo = TRUE,
-	warning = FALSE,
-	fig.width = 8, 
-  fig.height = 6,
-  out.width = "90%"
-)
-
-options(
-  ggplot2.continuous.colour = "viridis",
-  ggplot2.continuous.fill = "viridis"
-)
-
-scale_colour_discrete = scale_colour_viridis_d
-scale_fill_discrete = scale_fill_viridis_d
-
-theme_set(theme_minimal() + theme(legend.position = "bottom"))
-
-set.seed(1)
-```
-
+The bootstrap\!
+================
+Jeff Goldsmith
+11/8/2019
 
 ## Pull ourselves up by the bootstraps
 
-
-```{r}
+``` r
 set.seed(1)
 
 n_samp = 250
@@ -53,10 +24,9 @@ sim_df_nonconst = sim_df_const %>%
 )
 ```
 
-
 Show my datasets
 
-```{r}
+``` r
 sim_df = 
   bind_rows(const = sim_df_const, nonconst = sim_df_nonconst, .id = "data_source") 
 
@@ -67,38 +37,55 @@ sim_df %>%
   facet_grid(~data_source) 
 ```
 
-Fit two models ...
+<img src="bootstrap_files/figure-gfm/unnamed-chunk-2-1.png" width="90%" />
 
-```{r}
+Fit two models …
+
+``` r
 sim_df_const %>% 
   lm(y ~ x, data = .) %>% 
   broom::tidy()
+```
 
+    ## # A tibble: 2 x 5
+    ##   term        estimate std.error statistic   p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)     1.98    0.0981      20.2 3.65e- 54
+    ## 2 x               3.04    0.0699      43.5 3.84e-118
+
+``` r
 sim_df_nonconst %>% 
   lm(y ~ x, data = .) %>% 
   broom::tidy()
 ```
 
+    ## # A tibble: 2 x 5
+    ##   term        estimate std.error statistic   p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)     1.93    0.105       18.5 1.88e- 48
+    ## 2 x               3.11    0.0747      41.7 5.76e-114
 
 ## how can i bootstrap
 
 write a function to draw a bootstrap sample based on a dataframe.
 
-```{r}
+``` r
 boot_sample = function(df) {
   sample_frac(df, size = 1, replace = TRUE)
 }
 ```
 
-```{r}
+``` r
 boot_sample(df = sim_df_nonconst) %>% 
   ggplot(aes(x = x, y = y)) + 
   geom_point(alpha = .5)
 ```
 
-Organize a dataframe ...
+<img src="bootstrap_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
-```{r}
+Organize a dataframe …
+
+``` r
 boot_straps = 
   tibble(
     strap_num = 1:1000,
@@ -106,9 +93,9 @@ boot_straps =
   )
 ```
 
-Do some kind of analysis....
+Do some kind of analysis….
 
-```{r}
+``` r
 bootstrap_results = 
   boot_straps %>% 
   mutate(
@@ -119,27 +106,31 @@ bootstrap_results =
   unnest(results)
 ```
 
-summarize these results 
+summarize these results
 
-```{r}
+``` r
 bootstrap_results %>% 
   group_by(term) %>% 
   summarize(se = sd(estimate))
 ```
 
+    ## # A tibble: 2 x 2
+    ##   term            se
+    ##   <chr>        <dbl>
+    ## 1 (Intercept) 0.0747
+    ## 2 x           0.101
 
 ## Try the modelr package
 
-```{r}
+``` r
 boot_straps = 
   sim_df_nonconst %>% 
   modelr::bootstrap(1000)
 ```
 
+COPY AND PASTE\!\!\!
 
-COPY AND PASTE!!!
-
-```{r}
+``` r
 sim_df_nonconst %>% 
   modelr::bootstrap(n = 1000) %>% 
   mutate(
@@ -151,16 +142,27 @@ sim_df_nonconst %>%
   summarize(boot_se = sd(estimate))
 ```
 
+    ## # A tibble: 2 x 2
+    ##   term        boot_se
+    ##   <chr>         <dbl>
+    ## 1 (Intercept)  0.0790
+    ## 2 x            0.104
 
-## What if your assumptions aren't wrong?
+## What if your assumptions aren’t wrong?
 
-
-```{r}
+``` r
 sim_df_const %>% 
   lm(y ~ x, data = .) %>% 
   broom::tidy()
+```
 
+    ## # A tibble: 2 x 5
+    ##   term        estimate std.error statistic   p.value
+    ##   <chr>          <dbl>     <dbl>     <dbl>     <dbl>
+    ## 1 (Intercept)     1.98    0.0981      20.2 3.65e- 54
+    ## 2 x               3.04    0.0699      43.5 3.84e-118
 
+``` r
 sim_df_const %>% 
   modelr::bootstrap(n = 1000) %>% 
   mutate(
@@ -172,10 +174,15 @@ sim_df_const %>%
   summarize(boot_se = sd(estimate))
 ```
 
+    ## # A tibble: 2 x 2
+    ##   term        boot_se
+    ##   <chr>         <dbl>
+    ## 1 (Intercept)  0.101 
+    ## 2 x            0.0737
 
 ## Revisit Airbnb
 
-```{r}
+``` r
 data("nyc_airbnb")
 
 nyc_airbnb = 
@@ -188,16 +195,17 @@ nyc_airbnb =
   select(price, stars, boro, neighborhood, room_type)
 ```
 
-```{r}
+``` r
 nyc_airbnb %>% 
   ggplot(aes(x = stars, y = price)) +
   geom_point()
 ```
 
+<img src="bootstrap_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
 
-Re-use the stuff I just did ...
+Re-use the stuff I just did …
 
-```{r}
+``` r
 airbnb_results = 
   nyc_airbnb %>%
   filter(boro == "Manhattan") %>% 
@@ -211,11 +219,11 @@ airbnb_results =
 
 Make a plot of the `stars` distribution.
 
-```{r}
+``` r
 airbnb_results %>% 
   filter(term == "stars") %>% 
   ggplot(aes(x = estimate)) + 
   geom_density()
 ```
 
-
+<img src="bootstrap_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" />
