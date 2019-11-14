@@ -176,7 +176,7 @@ child_growth =
 Fit models
 
 ```{r}
-linear_mod    = lm(armc ~ weight, data = child_growth)
+linear_mod = lm(armc ~ weight, data = child_growth)
 pwl_mod    = lm(armc ~ weight + weight_cp, data = child_growth)
 smooth_mod = gam(armc ~ s(weight), data = child_growth)
 ```
